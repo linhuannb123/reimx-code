@@ -1,0 +1,150 @@
+{
+	"compiler": {
+		"version": "0.8.26+commit.8a97fa7a"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [],
+				"name": "TestAbiEncodeCombined",
+				"outputs": [],
+				"stateMutability": "pure",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "testABiSeletor",
+				"outputs": [],
+				"stateMutability": "pure",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "testAbiCall",
+				"outputs": [],
+				"stateMutability": "pure",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "testAbiDecode",
+				"outputs": [],
+				"stateMutability": "pure",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "testAbiEncode",
+				"outputs": [],
+				"stateMutability": "pure",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "testAbiEncodePacked",
+				"outputs": [],
+				"stateMutability": "pure",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "a",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bytes2",
+						"name": "b",
+						"type": "bytes2"
+					}
+				],
+				"name": "testAbiMethod",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "testAbiSignature",
+				"outputs": [],
+				"stateMutability": "pure",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {
+				"TestAbiEncodeCombined()": {
+					"details": "测试组合编码 展示如何从编码数据中提取原始值"
+				},
+				"testABiSeletor()": {
+					"details": "测试函数选择器和参数编码 展示如何手动计算选择器并编码函数调用"
+				},
+				"testAbiCall()": {
+					"details": "测试abi.encodeCall 展示如何使用abi.encodeCall构建函数调用数据"
+				},
+				"testAbiDecode()": {
+					"details": "测试ABI的解码 展示如何从编码数据中提取原始值"
+				},
+				"testAbiEncode()": {
+					"details": "abi.encode方法，可以对所有类型进行编码 展示不同类型使用abi.encode的编码结果"
+				},
+				"testAbiEncodePacked()": {
+					"details": "abi.encodePacked方法，只能对基本类型进行编码 展示不同类型使用abi.encodePacked的编码结果 "
+				},
+				"testAbiMethod(uint256,bytes2)": {
+					"details": "示例方法，用于测试函数选择器和参数编码",
+					"params": {
+						"a": "一个uint256类型的数值参数",
+						"b": "一个bytes2类型的数值参数"
+					}
+				},
+				"testAbiSignature()": {
+					"details": "测试abi.encodeWithSignature 展示如何使用 函数签名进行编码"
+				}
+			},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/week2/park2/different_methods_of_AbiEncode.sol": "TestAbiEncode"
+		},
+		"evmVersion": "cancun",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"contracts/week2/park2/different_methods_of_AbiEncode.sol": {
+			"keccak256": "0x953a625538c44b15e7841c3a5a22228b85effd961cb69c02c5043b1aa6df85a2",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://d4c46994e669562b1fdebe10fb05036e40c99cb2eb20961f733bc88bdcdeb265",
+				"dweb:/ipfs/QmUvofYqVH6ghpUhmkijTfbSBcsbs9CsGQQdioGcFqyArV"
+			]
+		},
+		"https://github.com/NomicFoundation/hardhat/blob/main/packages/hardhat-core/console.sol": {
+			"keccak256": "0xf2560b5386574153057104d19a9e68a32ee912cf23c0c8df1fe9a0607f42d543",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://a63166e036b040826baa513772451a79925daa304b38749100efb089ac07cdc2",
+				"dweb:/ipfs/QmUtMTxUFKU6a5oFXsEJnTPvb3QPb7GDDmSv5yZ1jFHDwR"
+			]
+		}
+	},
+	"version": 1
+}
