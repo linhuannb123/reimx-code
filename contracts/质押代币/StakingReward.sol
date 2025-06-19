@@ -22,7 +22,7 @@ contract StakingRewards {
     uint256 public finishAt;
 
     uint256 public updatedAt;
-
+    // 奖励速率
     uint256 public rewardRate;
 
     uint256 public rewardPerTokenStored;
@@ -59,11 +59,64 @@ contract StakingRewards {
         _;
     }
 
-    // 计时器外部可以调用的函数 ,它只能由管理员来调用
+    // 它是用来更新当前每个用户的奖励数额的，它会我们质押和撤回，以及
+    // 重新设置奖励参数的时候都会调用一下
 
-    function notifyRewardAmount(uint256 _amount) 
-        external 
-        onlyOnwer
+    // updateReward主要做的操作的是更新用户奖励的状态，它会每次调用的时候都
+    // 会更新rewordPerTokenStored
+    modifier updateReward(address _account) {
+        //  奖励的数额
+        rewardPerTokenStored = rewardPerToken();
+        updatedAt = lastTimeRewardApplicable();
+        if (_account != address(0)) {
+            rewards[_account] = earned(_account);
+            userRewardPerTokenPaid[_account] = rewardPerTokenStored;
+        }
+        _;
+    }
+
+    // rewardPerToken 它计算的是每一次质押代币，它对应的奖励代币是多少
+    // 它会用上一次存储的rewordPerTokenStored数值 + 奖励速率 * 时间差
+    // 它是一个增量更新的逻辑
+    function rewardPerToken() public view returns (uint256) {
+        if (totalSupply == 0) return rewardPerTokenStored;
+
+        return
+            rewardPerTokenStored +
+            ((rewardRate * (lastTimeRewardApplicable() - updatedAt)) * 1e18) /
+            totalSupply;
+    }
+
+    function  _min(uint256 x, uint256 y) private pure returns (uint256) {
+        return x <= y ? x : y;
+    }
+
+    function lastTimeRewardApplicable() public view returns (uint256) {
+        return _min(block.timestamp, finishAt);
+    }
+
+    // 查看奖励收益
+    function earned(address _account) public view returns (uint256) {
+        return
+            (balanceOf[_account] *
+                (rewardPerToken() - userRewardPerTokenPaid[_account])) /
+            1e18 +
+            rewards[_account];
+    }
+
+
+    // 设置奖励持续时间的函数
+    function setRewardDuration(uint256 _duration) external onlyOwner {
+        // 结束时间 是否比当前时间，当前时间周期还没结束
+        // 是不允许它重新设置奖励周期
+        require(finishAt < block.timestamp, "reward duration not finished");
+        duration = _duration;
+    }
+
+    // 计时器外部可以调用的函数 ,它只能由管理员来调用
+    function notifyRewardAmount(uint256 _amount)
+        external
+        onlyOwner
         updateReward(address(0))
     {
         /****
@@ -74,57 +127,59 @@ contract StakingRewards {
          * 1. 当前时间： 1600, finishAt: 1500 , amount:1000 ,duration: 1000
          *   1. rewardRate: 1000 / 1000 = 1
          * 2. 当前时间： 2000, finishAt: 2600 , amount:1000 ,duration: 1000
-         *   1. remainingRewards : (2600 - 2000) * 1 = 600 
+         *   1. remainingRewards : (2600 - 2000) * 1 = 600
          *   2. rawardRate: (600 + 1000) / 1000 = 1.6
          */
         if (block.timestamp > finishAt) {
-            rewardRate = _amount / duration; 
+            rewardRate = _amount / duration;
         } else {
-            uint remainingRewards = rewardRate * (finishAt - block.timestamp);
+            uint256 remainingRewards = rewardRate *
+                (finishAt - block.timestamp);
             rewardRate = (remainingRewards + _amount) / duration;
         }
 
-        require(rewardRate > 0,"reward rate = 0");
+        require(rewardRate > 0, "reward rate = 0");
         require(
-            rewardRate * duration <= rewardsToken.balanceOf(addree(this)),
+            rewardRate * duration <= rewardsToken.balanceOf(address(this)),
             "reward amount > balance"
         );
 
         finishAt = block.timestamp + duration;
-        updateAt = block.timestamp;
+        updatedAt = block.timestamp;
     }
 
-    // 它是用来更新当前每个用户的奖励数额的，它会我们质押和撤回，以及
-    // 重新设置奖励参数的时候都会调用一下
-      
-    // updateReward主要做的操作的是更新用户奖励的状态，它会每次调用的时候都
-    // 会更新rewordPerTokenStored
-    modifier updateReward() {
-        rewardParTokenStored = rewardPerToken();
-        updateAt = lastTimeRewardApplicable();
+    // 质押方法：就是把质押token传到合约里
+    // 调用质押的时候需要更新一下奖励的一些参数
+    function stake(uint256 _amount) external updateReward(msg.sender) {
+        require(_amount > 0, "amount = 0");
+        // 将这些代币转入到合约里面
+        stakingToken.transferFrom(msg.sender, address(this), _amount);
+        // 记录当前的用户balance是多少,这个存储在合约里面
+        balanceOf[msg.sender] += _amount;
+        // 更新总质押金额
+        totalSupply += _amount;
+    }
 
-        if(_account != address(0)){
-            rewards[_account] = earned(_account);
-            userRewardPerTokenPaid[_account] = rewardPerTokenStored;
+    // 提取方法
+    function withdraw(uint256 _amount) external updateReward(msg.sender) {
+        require(_amount > 0, "amount = 0");
+        // 记录当前的用户balance是多少,这个存储在合约里面
+        balanceOf[msg.sender] -= _amount;
+        // 更新总质押金额
+        totalSupply -= _amount;
+
+        stakingToken.transfer(msg.sender, _amount);
+    }
+
+    // 获取收益的函数
+    function getReward() external updateReward(msg.sender) {
+        // 访问用户奖励存储的数额
+        uint256 reward = rewards[msg.sender];
+        // 如果奖励数额大于0
+        if (reward > 0) {
+            rewards[msg.sender] = 0;
+
+            rewardsToken.transfer(msg.sender, reward);
         }
-        _;
     }
-    // rewardPerToken 它计算的是每一次质押代币，它对应的奖励代币是多少
-    // 它会用上一次存储的rewordPerTokenStored数值 + 奖励速率 * 时间差
-    // 它是一个增量更新的逻辑
-    function rewardPerToken() public view returns (uint256) {
-        if(totalSupply == 0) return rewardPerTokenStored;
-
-        return  rewardPerTokenStored + (
-            rewardRate * 
-            (
-                lastTimeRewardApplicable() - updatedAt * 1e18
-            ) / totalSupply;
-        )
-    }
-
-    function lastTimeRewardAppliceable() public view returns (uint256){
-        return _min(block.timestamp,finishAt);
-    }
-
 }
